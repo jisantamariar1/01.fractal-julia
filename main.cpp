@@ -90,7 +90,8 @@ int main() {
 
         // LÓGICA DE DIBUJO:
         //crear la textura
-        julia_serial_1(x_min, y_min, x_max, y_max, WIDTH, HEIGHT, pixel_buffer);
+        //julia_serial_1(x_min, y_min, x_max, y_max, WIDTH, HEIGHT, pixel_buffer);
+        julia_serial_2(x_min, y_min, x_max, y_max, WIDTH, HEIGHT, pixel_buffer);
         //actualizar la textura
         texture.update((const uint8_t *)pixel_buffer);
         frames++;

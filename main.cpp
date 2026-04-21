@@ -1,6 +1,7 @@
 #include <fmt/core.h>         // Librería para formateo de texto moderno y rápido.
 #include <SFML/Graphics.hpp>  // Librería principal para manejar gráficos y ventanas.
 #include <complex>            // Necesario para manejar números complejos (fundamentales para fractales).
+#include "fractal_serial.h"   // Incluye las funciones específicas para calcular el fractal de Julia.
 //Prueba 2
 
 // Bloque específico para Windows: permite usar funciones del sistema operativo.
@@ -12,15 +13,16 @@
 #define WIDTH 1600
 #define HEIGHT 900
 
-// --- PARÁMETROS DEL FRACTAL ---
-// Cuántas veces repetiremos el cálculo antes de decidir si el punto "escapa".
-int max_iteraciones = 10;
+
 
 // Límites del "plano complejo" que vamos a dibujar.
 double x_min = -1.5;
 double x_max = 1.5;
 double y_min = -1.0;
 double y_max = 1.0;
+// --- PARÁMETROS DEL FRACTAL ---
+// Cuántas veces repetiremos el cálculo antes de decidir si el punto "escapa".
+int max_iteraciones = 10;
 
 // Constante 'c' que define la forma específica del conjunto de Julia.
 std::complex<double> c(-0.7, 0.27015);
@@ -48,6 +50,19 @@ int main() {
     ShowWindow(hwnd, SW_MAXIMIZE);        
 #endif
 
+    sf::Texture texture({WIDTH, HEIGHT}); // Creamos una textura que se usará para mostrar el fractal.
+    sf::Sprite sprite(texture); // Un sprite es un objeto que se puede dibujar en la
+
+    sf::Font font("arial.ttf"); // Cargamos una fuente para mostrar texto (opcional).
+    sf::Text text(font, "Julia Set", 24); // Creamos un objeto de texto con la fuente cargada.
+    text.setFillColor(sf::Color::White); // El texto será blanco.
+    //text.setPosition(10, 10); // Posicionamos el texto en la esquina superior izquierda.
+    text.setStyle(sf::Text::Bold); // Hacemos el texto en negrita.
+
+    //fps
+    int frames =0;
+    int fps = 0;
+    sf::Clock clock; // Reloj para medir el tiempo transcurrido.
     // BUCLE PRINCIPAL (Game Loop):
     while (window.isOpen())
     {
@@ -60,8 +75,29 @@ int main() {
         }
 
         // LÓGICA DE DIBUJO:
-        window.clear();   // Limpia la pantalla (la deja en negro).
+        //crear la textura
+        julia_serial_1(x_min, y_min, x_max, y_max, WIDTH, HEIGHT, pixel_buffer);
+        //actualizar la textura
+        texture.update((const uint8_t *)pixel_buffer);
+        frames++;
+
+        if (clock.getElapsedTime().asSeconds() >= 1.0f){
+            fps = frames;
+            frames = 0;
+            clock.restart();
+            
+        }
+
         
+        auto msg = fmt::format("Julia Set: Iterations: {}, FPS: {}", max_iteraciones, fps);
+        text.setString(msg);
+        
+
+        window.clear();   // Limpia la pantalla (la deja en negro).
+        {
+            window.draw(sprite);
+            window.draw(text);
+        }
         // (Aquí es donde más adelante dibujarás el contenido del pixel_buffer).
 
         window.display(); // Muestra lo que se ha dibujado en el monitor.

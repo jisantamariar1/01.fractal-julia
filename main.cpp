@@ -1,7 +1,7 @@
 #include <fmt/core.h>         // Librería para formateo de texto moderno y rápido.
 #include <SFML/Graphics.hpp>  // Librería principal para manejar gráficos y ventanas.
 #include <complex>            // Necesario para manejar números complejos (fundamentales para fractales).
-//Prueba
+//Prueba 2
 
 // Bloque específico para Windows: permite usar funciones del sistema operativo.
 #ifdef _WIN32

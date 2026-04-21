@@ -56,7 +56,7 @@ int main() {
     sf::Font font("arial.ttf"); // Cargamos una fuente para mostrar texto (opcional).
     sf::Text text(font, "Julia Set", 24); // Creamos un objeto de texto con la fuente cargada.
     text.setFillColor(sf::Color::White); // El texto será blanco.
-    //text.setPosition(10, 10); // Posicionamos el texto en la esquina superior izquierda.
+    text.setPosition({10, 10}); // Posicionamos el texto en la esquina superior izquierda.
     text.setStyle(sf::Text::Bold); // Hacemos el texto en negrita.
 
     //fps

@@ -72,6 +72,20 @@ int main() {
             // Si el evento es cerrar la ventana, el bucle termina.
             if (event->is<sf::Event::Closed>())
                 window.close();
+            else if(event->is<sf::Event::KeyReleased>()) {
+                    auto evt = event->getIf<sf::Event::KeyReleased>();
+
+                    switch(evt->scancode) {
+                        case sf::Keyboard::Scan::Up:
+                            max_iteraciones += 10;
+                            break;
+                        case sf::Keyboard::Scan::Down:
+                            max_iteraciones -= 10;
+                            if(max_iteraciones <10) max_iteraciones = 10;
+                            break;
+                        
+                    }
+                }
         }
 
         // LÓGICA DE DIBUJO:

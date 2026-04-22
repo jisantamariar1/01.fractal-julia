@@ -25,7 +25,14 @@ std::complex<double> c(-0.7, 0.27015); // La semilla que da forma al fractal de 
 // El puntero que administrará nuestro bloque gigante de píxeles en la RAM.
 uint32_t* pixel_buffer = nullptr;
 
+enum class runtime_type {
+    SERIAL_1 = 0,
+    SERIAL_2
+};
+
 int main() {
+    runtime_type runtime = runtime_type::SERIAL_2;
+
     // 1. ASIGNACIÓN DE MEMORIA (HEAP):
     // Reservamos espacio para 1.44 millones de píxeles (1600*900).
     pixel_buffer = new uint32_t[WIDTH * HEIGHT];
@@ -82,13 +89,35 @@ int main() {
                         max_iteraciones -= 10; // Menos detalle (más rápido).
                         if(max_iteraciones < 10) max_iteraciones = 10;
                         break;
+                    case sf::Keyboard::Scan::Num1:
+                        runtime = runtime_type::SERIAL_1; // Cambiar a la primera implementación.
+                        break;
+                    case sf::Keyboard::Scan::Num2:
+                        runtime = runtime_type::SERIAL_2; // Cambiar a la segunda implementación.
+                        break;
+
                 }
             }
+        }
+        std::string mode ="";
+        if(r_type == runtime_type::SERIAL_1) {
+            // C. ACTUALIZAR TEXTURA:
+            // Llamamos a nuestra función para que llene el pixel_buffer con colores.
+            julia_serial_1(x_min, y_min, x_max, y_max, WIDTH, HEIGHT, pixel_buffer);
+            mode = "SERIAL_1";
+            //julia_serial_2(x_min, y_min, x_max, y_max, WIDTH, HEIGHT, pixel_buffer);
+        } else if (r_type == runtime_type::SERIAL_2) {
+            // C. ACTUALIZAR TEXTURA:
+            // Llamamos a nuestra función para que llene el pixel_buffer con colores.
+            julia_serial_2(x_min, y_min, x_max, y_max, WIDTH, HEIGHT, pixel_buffer);
+            mode = "SERIAL_2";
+
+            //julia_serial_1(x_min, y_min, x_max, y_max, WIDTH, HEIGHT, pixel_buffer);
         }
 
         // B. CÁLCULO DEL FRACTAL (Lógica pesada):
         // Llamamos a nuestra función para que llene el pixel_buffer con colores.
-        julia_serial_2(x_min, y_min, x_max, y_max, WIDTH, HEIGHT, pixel_buffer);
+        //julia_serial_2(x_min, y_min, x_max, y_max, WIDTH, HEIGHT, pixel_buffer);
         //julia_serial_1(x_min, y_min, x_max, y_max, WIDTH, HEIGHT, pixel_buffer);
 
         // C. ACTUALIZAR TEXTURA:
@@ -104,7 +133,7 @@ int main() {
         }
 
         // E. ACTUALIZAR HUD: Formateamos el mensaje de texto.
-        auto msg = fmt::format("Julia Set: Iterations: {}, FPS: {}", max_iteraciones, fps);
+        auto msg = fmt::format("Julia Set: Iterations: {}, FPS: {}, Mode: {}", max_iteraciones, fps, mode);
         text.setString(msg);
 
         // F. RENDERIZADO:

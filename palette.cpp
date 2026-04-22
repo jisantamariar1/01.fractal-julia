@@ -1,0 +1,38 @@
+#include "palette.h"
+/*
+#FFFFCC
+#FFF5B5
+#FFEC9D
+#FEE187
+#FED470
+#FEBF5A
+#FEAB49
+#FD9740
+#FD7C37
+#FC5B2E
+#F43D25
+#E6211E
+#D41020
+#C00225
+#A10026
+#800026
+*/
+
+std::vector<uint32_t> color_ramp = {
+    0xFFFFCCFF,
+    0xFFF5B5FF,
+    0xFFEC9DFF,
+    0xFEE187FF,
+    0xFED470FF,
+    0xFEBF5AFF,
+    0xFEAB49FF,
+    0xFD9740FF,
+    0xFD7C37FF,
+    0xFC5B2EFF,
+    0xF43D25FF,
+    0xE6211EFF,
+    0xD41020FF,
+    0xC00225FF,
+    0xA10026FF,
+    0x800026FF
+};

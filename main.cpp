@@ -1,126 +1,116 @@
-#include <fmt/core.h>         // Librería para formateo de texto moderno y rápido.
-#include <SFML/Graphics.hpp>  // Librería principal para manejar gráficos y ventanas.
-#include <complex>            // Necesario para manejar números complejos (fundamentales para fractales).
-#include "fractal_serial.h"   // Incluye las funciones específicas para calcular el fractal de Julia.
-//Prueba 2
+#include <fmt/core.h>         // Para formatear el texto del HUD (FPS e iteraciones) de forma eficiente.
+#include <SFML/Graphics.hpp>  // Motor gráfico para crear la ventana y manejar la textura de los píxeles.
+#include <complex>            // Necesario para definir la constante 'c' del fractal.
+#include "fractal_serial.h"   // Nuestras funciones de cálculo de Julia.
 
-// Bloque específico para Windows: permite usar funciones del sistema operativo.
+// Si estamos en Windows, incluimos su API para poder maximizar la ventana manualmente.
 #ifdef _WIN32
     #include <windows.h>
 #endif
 
-// Definimos el tamaño de la imagen. 1600x900 es una resolución HD.
+// Definimos la resolución de nuestra área de dibujo.
 #define WIDTH 1600
 #define HEIGHT 900
 
-
-
-// Límites del "plano complejo" que vamos a dibujar.
+// Definimos los límites del plano complejo donde queremos "mirar".
 double x_min = -1.5;
 double x_max = 1.5;
 double y_min = -1.0;
 double y_max = 1.0;
-// --- PARÁMETROS DEL FRACTAL ---
-// Cuántas veces repetiremos el cálculo antes de decidir si el punto "escapa".
+
+// Parámetros dinámicos: pueden cambiar mientras el programa corre.
 int max_iteraciones = 10;
+std::complex<double> c(-0.7, 0.27015); // La semilla que da forma al fractal de Julia.
 
-// Constante 'c' que define la forma específica del conjunto de Julia.
-std::complex<double> c(-0.7, 0.27015);
-
-// Puntero para el buffer de píxeles. 
-// Cada píxel se guarda como un uint32_t (32 bits: Rojo, Verde, Azul y Alpha).
+// El puntero que administrará nuestro bloque gigante de píxeles en la RAM.
 uint32_t* pixel_buffer = nullptr;
 
 int main() {
-
-    // RESERVA DE MEMORIA:
-    // Creamos un arreglo dinámico para guardar todos los píxeles de la imagen.
-    // Se usa 'new' porque un arreglo de este tamaño es demasiado grande para la memoria fija (stack).
+    // 1. ASIGNACIÓN DE MEMORIA (HEAP):
+    // Reservamos espacio para 1.44 millones de píxeles (1600*900).
     pixel_buffer = new uint32_t[WIDTH * HEIGHT];
 
-    // CREACIÓN DE VENTANA:
-    // sf::VideoMode define el tamaño físico de la ventana.
+    // 2. CONFIGURACIÓN DE LA VENTANA:
+    // Creamos la ventana de SFML con el título "Julia Set".
     sf::RenderWindow window(sf::VideoMode({WIDTH, HEIGHT}), "Julia Set - SFML");
 
-// CÓDIGO PARA MAXIMIZAR (Solo en Windows):
+// Si es Windows, forzamos que la ventana se abra maximizada usando el handle nativo.
 #ifdef _WIN32
-    // Obtenemos el identificador (handle) de la ventana que creó SFML.
     HWND hwnd = window.getNativeHandle(); 
-    // Llamamos a la función de Windows para que la ventana aparezca maximizada.
     ShowWindow(hwnd, SW_MAXIMIZE);        
 #endif
 
-    sf::Texture texture({WIDTH, HEIGHT}); // Creamos una textura que se usará para mostrar el fractal.
-    sf::Sprite sprite(texture); // Un sprite es un objeto que se puede dibujar en la
+    // 3. OBJETOS GRÁFICOS DE SFML:
+    // La 'texture' vive en la VRAM (Tarjeta de video) y recibirá los datos del pixel_buffer.
+    sf::Texture texture({WIDTH, HEIGHT}); 
+    // El 'sprite' es el objeto que permite "dibujar" la textura en la ventana.
+    sf::Sprite sprite(texture); 
 
-    sf::Font font("arial.ttf"); // Cargamos una fuente para mostrar texto (opcional).
-    sf::Text text(font, "Julia Set", 24); // Creamos un objeto de texto con la fuente cargada.
-    text.setFillColor(sf::Color::White); // El texto será blanco.
-    text.setPosition({10, 10}); // Posicionamos el texto en la esquina superior izquierda.
-    text.setStyle(sf::Text::Bold); // Hacemos el texto en negrita.
+    // Cargamos una fuente y configuramos el texto que mostrará los FPS.
+    sf::Font font("arial.ttf"); 
+    sf::Text text(font, "Julia Set", 24); 
+    text.setFillColor(sf::Color::White); 
+    text.setPosition({10, 10}); 
+    text.setStyle(sf::Text::Bold); 
 
-    //fps
-    int frames =0;
+    // Variables para medir el rendimiento (Frames Per Second).
+    int frames = 0;
     int fps = 0;
-    sf::Clock clock; // Reloj para medir el tiempo transcurrido.
-    // BUCLE PRINCIPAL (Game Loop):
+    sf::Clock clock; 
+
+    // 4. BUCLE PRINCIPAL (Game Loop): Se ejecuta hasta que se cierre la ventana.
     while (window.isOpen())
     {
-        // CONTROL DE EVENTOS:
-        // window.pollEvent revisa si el usuario hizo algo (teclado, ratón o cerrar).
+        // A. PROCESAR EVENTOS: Entrada del usuario.
         while (const std::optional event = window.pollEvent()) {
-            // Si el evento es cerrar la ventana, el bucle termina.
             if (event->is<sf::Event::Closed>())
-                window.close();
+                window.close(); // Cerrar el programa.
             else if(event->is<sf::Event::KeyReleased>()) {
-                    auto evt = event->getIf<sf::Event::KeyReleased>();
-
-                    switch(evt->scancode) {
-                        case sf::Keyboard::Scan::Up:
-                            max_iteraciones += 10;
-                            break;
-                        case sf::Keyboard::Scan::Down:
-                            max_iteraciones -= 10;
-                            if(max_iteraciones <10) max_iteraciones = 10;
-                            break;
-                        
-                    }
+                auto evt = event->getIf<sf::Event::KeyReleased>();
+                // Controlamos las iteraciones con las flechas del teclado.
+                switch(evt->scancode) {
+                    case sf::Keyboard::Scan::Up:
+                        max_iteraciones += 10; // Más detalle.
+                        break;
+                    case sf::Keyboard::Scan::Down:
+                        max_iteraciones -= 10; // Menos detalle (más rápido).
+                        if(max_iteraciones < 10) max_iteraciones = 10;
+                        break;
                 }
+            }
         }
 
-        // LÓGICA DE DIBUJO:
-        //crear la textura
-        //julia_serial_1(x_min, y_min, x_max, y_max, WIDTH, HEIGHT, pixel_buffer);
+        // B. CÁLCULO DEL FRACTAL (Lógica pesada):
+        // Llamamos a nuestra función para que llene el pixel_buffer con colores.
         julia_serial_2(x_min, y_min, x_max, y_max, WIDTH, HEIGHT, pixel_buffer);
-        //actualizar la textura
+        //julia_serial_1(x_min, y_min, x_max, y_max, WIDTH, HEIGHT, pixel_buffer);
+
+        // C. ACTUALIZAR TEXTURA:
+        // Enviamos los datos calculados en la CPU hacia la Tarjeta de Video.
         texture.update((const uint8_t *)pixel_buffer);
         frames++;
 
+        // D. CÁLCULO DE FPS: Cada vez que pase 1 segundo, actualizamos el contador.
         if (clock.getElapsedTime().asSeconds() >= 1.0f){
             fps = frames;
             frames = 0;
             clock.restart();
-            
         }
 
-        
+        // E. ACTUALIZAR HUD: Formateamos el mensaje de texto.
         auto msg = fmt::format("Julia Set: Iterations: {}, FPS: {}", max_iteraciones, fps);
         text.setString(msg);
-        
 
-        window.clear();   // Limpia la pantalla (la deja en negro).
-        {
-            window.draw(sprite);
-            window.draw(text);
-        }
-        // (Aquí es donde más adelante dibujarás el contenido del pixel_buffer).
-
-        window.display(); // Muestra lo que se ha dibujado en el monitor.
+        // F. RENDERIZADO:
+        window.clear();      // Limpiar la pantalla (borrar el frame anterior).
+        window.draw(sprite); // Dibujar el fractal (la textura).
+        window.draw(text);   // Dibujar el contador de FPS encima.
+        window.display();    // Intercambiar buffers para mostrar el dibujo en el monitor.
     }
 
-    // LIMPIEZA DE MEMORIA:
-    // Siempre que uses 'new', debes usar 'delete[]' al terminar para no desperdiciar RAM.
+    // 5. LIMPIEZA:
+    // Muy importante para evitar fugas de memoria al cerrar el programa.
     delete[] pixel_buffer;
 
-    return 0; // El programa termina con éxito.
+    return 0; 
 }

@@ -1,6 +1,6 @@
 #include "fractal_serial.h" // Incluimos las declaraciones para que el compilador verifique las firmas.
 #include <complex>          // Librería estándar para manejar números complejos y funciones como std::abs.
-
+#include "palette.h"       // Nuestra paleta de colores predefinida (opcional).
 // EXTERN: Estas variables existen físicamente en main.cpp. 
 // Aquí solo le decimos al compilador que confíe en que el "Linker" las encontrará.
 extern int max_iteraciones;
@@ -21,7 +21,9 @@ uint32_t acotado_1(std::complex<double> z0) {
 
     // Si terminó antes de llegar al máximo, es porque escapó (está fuera del conjunto).
     if(iter < max_iteraciones){
-        return 0xFF0000FF;      // Devolvemos color ROJO (Formato RGBA: 0x RR GG BB AA).
+        //return 0xFF0000FF;      // Devolvemos color ROJO (Formato RGBA: 0x RR GG BB AA).
+        int index = iter % PALETTE_SIZE; // Usamos el contador de iteraciones para elegir un color de la paleta.
+        return color_ramp[index]; // Devolvemos el color correspondiente de la paleta.
     }
     return 0xFF000000;          // Si nunca escapó, devolvemos NEGRO.
 }
@@ -75,7 +77,9 @@ uint32_t acotado_2(double x, double y) {
     }
 
     if(iter < max_iteraciones){
-        return 0xFF0000FF; // Rojo si escapa.
+        int index = iter % PALETTE_SIZE; // Usamos el contador de iteraciones para elegir un color de la paleta.
+        return color_ramp[index]; // Devolvemos el color correspondiente de la paleta.
+        //return 0xFF0000FF; // Rojo si escapa.
     }
     return 0xFF000000; // Negro si no escapa.
 }

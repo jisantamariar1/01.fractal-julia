@@ -2,7 +2,7 @@
 #include <SFML/Graphics.hpp>  // Motor gráfico para crear la ventana y manejar la textura de los píxeles.
 #include <complex>            // Necesario para definir la constante 'c' del fractal.
 #include "fractal_serial.h"   // Nuestras funciones de cálculo de Julia.
-
+#include "fractal_simd.h"     // Nuestra función de cálculo de Julia optimizada con SIMD.
 // Si estamos en Windows, incluimos su API para poder maximizar la ventana manualmente.
 #ifdef _WIN32
     #include <windows.h>
@@ -27,11 +27,12 @@ uint32_t* pixel_buffer = nullptr;
 
 enum class runtime_type {
     SERIAL_1 = 0,
-    SERIAL_2
+    SERIAL_2,
+    SIMD,
 };
 
 int main() {
-    runtime_type runtime = runtime_type::SERIAL_2;
+    runtime_type r_type = runtime_type::SERIAL_1;
 
     // 1. ASIGNACIÓN DE MEMORIA (HEAP):
     // Reservamos espacio para 1.44 millones de píxeles (1600*900).
@@ -90,10 +91,13 @@ int main() {
                         if(max_iteraciones < 10) max_iteraciones = 10;
                         break;
                     case sf::Keyboard::Scan::Num1:
-                        runtime = runtime_type::SERIAL_1; // Cambiar a la primera implementación.
+                        r_type = runtime_type::SERIAL_1; // Cambiar a la primera implementación.
                         break;
                     case sf::Keyboard::Scan::Num2:
-                        runtime = runtime_type::SERIAL_2; // Cambiar a la segunda implementación.
+                        r_type = runtime_type::SERIAL_2; // Cambiar a la segunda implementación.
+                        break;
+                    case sf::Keyboard::Scan::Num3:
+                        r_type = runtime_type::SIMD; // Cambiar a la implementación SIMD
                         break;
 
                 }
@@ -113,6 +117,9 @@ int main() {
             mode = "SERIAL_2";
 
             //julia_serial_1(x_min, y_min, x_max, y_max, WIDTH, HEIGHT, pixel_buffer);
+        } else if (r_type == runtime_type::SIMD) {
+            julia_simd(x_min, y_min, x_max, y_max, WIDTH, HEIGHT, pixel_buffer);
+            mode = "SIMD";
         }
 
         // B. CÁLCULO DEL FRACTAL (Lógica pesada):

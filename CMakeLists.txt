@@ -24,6 +24,8 @@ find_package(SFML COMPONENTS System Graphics Window CONFIG REQUIRED)
 add_executable(fractal-julia
  main.cpp
  fractal_serial.cpp
+ palette.cpp
+ fractal_simd.cpp
 )
 
 # 6. "Enlaza" o conecta las librerías con tu ejecutable.

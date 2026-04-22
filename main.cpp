@@ -53,6 +53,12 @@ int main() {
     text.setPosition({10, 10}); 
     text.setStyle(sf::Text::Bold); 
 
+    std::string options = "Options: [1] Serial 1 [2] Serial 2 | Up/Down: Change iterations";
+    sf::Text textOptions(font, options, 20);
+    textOptions.setFillColor(sf::Color::White);
+    textOptions.setStyle(sf::Text::Bold);
+    textOptions.setPosition({10, window.getSize().y - 40}); // Posicionar en la parte inferior de la ventana.
+
     // Variables para medir el rendimiento (Frames Per Second).
     int frames = 0;
     int fps = 0;
@@ -105,6 +111,7 @@ int main() {
         window.clear();      // Limpiar la pantalla (borrar el frame anterior).
         window.draw(sprite); // Dibujar el fractal (la textura).
         window.draw(text);   // Dibujar el contador de FPS encima.
+        window.draw(textOptions); // Dibujar las opciones de control.
         window.display();    // Intercambiar buffers para mostrar el dibujo en el monitor.
     }
 

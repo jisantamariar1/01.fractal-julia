@@ -25,8 +25,13 @@ void julia_simd(float x_min, float y_min, float x_max, float y_max, int width, i
     __m256 c_real = _mm256_set1_ps(c.real());
     __m256 c_imag = _mm256_set1_ps(c.imag());
 
-    for (int i = 0; i < width; i++) {
-        for (int j = 0; j < height; j += 8) {
+    __m256 max_norma = _mm256_set1_ps(4.0f); // El valor de 2^2 para comparar con la norma de z (4,4,4,4,4,4,4,4)
+    __m256 one = _mm256_set1_ps(1.0f);       // (1, 1, 1, 1, 1, 1, 1, 1)
+
+    for (int i = 0; i < width; i++)
+    {
+        for (int j = 0; j < height; j += 8)
+        {
             // (i, i, i, i, i, i, i, i)
             __m256 mx = _mm256_set1_ps(i);
             // (j+7, j+6, j+5, j+4, j+3, j+2, j+1, j)
@@ -37,8 +42,61 @@ void julia_simd(float x_min, float y_min, float x_max, float y_max, int width, i
             __m256 cr = _mm256_add_ps(xmin, _mm256_mul_ps(mx, xscale)); // mx*xscale
             __m256 ci = _mm256_sub_ps(ymax, _mm256_mul_ps(my, yscale)); // my*yscale
 
-            //verificar si los 8 complejos (cr, ci) divergen o no (estan acotados o no)
-            
+            // verificar si los 8 complejos (cr, ci) divergen o no (estan acotados o no)
+            int iter = 1;
+            __m256 mk = _mm256_set1_ps(iter);
+
+            __m256 zr = cr; // z0.real = c.real
+            __m256 zi = ci; // z0.imag = c.imag
+
+            while (iter < max_iteraciones)
+            {
+                // Zn+1 = Zn^2 + c
+
+                __m256 zr2 = _mm256_mul_ps(zr, zr);  // z^2.real = z.real * z.real
+                __m256 zi2 = _mm256_mul_ps(zi, zi);  // z^2.imag = z.imag
+                __m256 zrzi = _mm256_mul_ps(zr, zi); // z.real * z.imag
+
+                zr = _mm256_add_ps(_mm256_sub_ps(zr2, zi2), c_real);   // z^2.real - z^2.imag + c.real
+                zi = _mm256_add_ps(_mm256_add_ps(zrzi, zrzi), c_imag); // 2 * z.real * z.imag + c.imag
+
+                //--normas
+                zr2 = _mm256_mul_ps(zr, zr); // z.real^2
+                zi2 = _mm256_mul_ps(zi, zi); // z.imag^2
+
+                __m256 norma2 = _mm256_add_ps(zr2, zi2); // z.real^2 + z.imag^2 //norma^2
+
+                __m256 mask = _mm256_cmp_ps(norma2, max_norma, _CMP_LE_OS); // compara si norma^2 < 4.0f (max_norma) y devuelve una mascara de bits
+
+                mk = _mm256_add_ps(_mm256_and_ps(mask, one), mk);
+
+                if (_mm256_testz_ps(mask, _mm256_set1_ps(-1)))
+                { // Si todos los bits de la mascara son 0, entonces todos los puntos han diverger
+                    // todos los 8 complejos ya no estan acotados, salir del ciclo
+                    break;
+                }
+
+                iter++;
+            }
+
+            float d[8];
+            _mm256_storeu_ps(d, mk); // Almacenar el resultado de las iteraciones en un arreglo de floats
+            for (int it = 0; it < 8; it++)
+            {
+                int index = (j + it) * width + i; // Calcular el índice del pixel en el buffer
+                if (index < width * height)
+                {
+                    if (d[it] < max_iteraciones)
+                    {
+                        int color_index = (int)d[it] % PALETTE_SIZE;   // Obtener el índice de color basado en el número de iteraciones
+                        pixel_buffer[index] = color_ramp[color_index]; // Asignar el color al pixel
+                    }
+                    else
+                    {
+                        pixel_buffer[index] = 0xFF000000; // Si el punto no diverge, asignar un color (
+                    }
+                }
+            }
         }
     }
 }

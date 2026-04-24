@@ -61,7 +61,7 @@ int main() {
     text.setPosition({10, 10}); 
     text.setStyle(sf::Text::Bold); 
 
-    std::string options = "Options: [1] Serial 1 [2] Serial 2 | Up/Down: Change iterations";
+    std::string options = "Options: [1] Serial1 [2] Serial2 [3] SIMD | Up/Down: Change iterations";
     sf::Text textOptions(font, options, 20);
     textOptions.setFillColor(sf::Color::White);
     textOptions.setStyle(sf::Text::Bold);

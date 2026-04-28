@@ -17,7 +17,7 @@ void julia_simd(float x_min, float y_min, float x_max, float y_max, int width, i
     __m256 xmin = _mm256_set1_ps(x_min);
     //(ymax, ymax, ymax, ymax, ymax, ymax, ymax, ymax)
     //(1, 1, 1, 1, 1, 1, 1, 1)
-    __m256 ymax = _mm256_set1_ps(y_max);
+    __m256 ymin = _mm256_set1_ps(y_min);
 
     __m256 xscale = _mm256_set1_ps(dx); //(dx, dx, dx, dx, dx, dx, dx, dx)
     __m256 yscale = _mm256_set1_ps(dy); //(dy, dy, dy, dy, dy, dy, dy, dy)
@@ -40,7 +40,7 @@ void julia_simd(float x_min, float y_min, float x_max, float y_max, int width, i
             // xmin+mx*xscale --> (x0, x1, x2, x3, x4, x5, x6, x7) <-- real
             // ymax-my*yscale --> (y0, y1, y2, y3, y4, y5, y6, y7) <-- imag
             __m256 cr = _mm256_add_ps(xmin, _mm256_mul_ps(mx, xscale)); // mx*xscale
-            __m256 ci = _mm256_sub_ps(ymax, _mm256_mul_ps(my, yscale)); // my*yscale
+            __m256 ci = _mm256_add_ps(ymin, _mm256_mul_ps(my, yscale)); // my*yscale
 
             // verificar si los 8 complejos (cr, ci) divergen o no (estan acotados o no)
             int iter = 1;

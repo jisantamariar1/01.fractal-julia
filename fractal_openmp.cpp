@@ -69,3 +69,27 @@ void julia_openmp_regiones(double x_min, double y_min, double x_max, double y_ma
     }
 }
 
+void julia_openmp_for(double x_min, double y_min, double x_max, double y_max, uint32_t width, uint32_t height, uint32_t* pixel_buffer) {
+
+    double dx = (x_max - x_min) / width;   
+    double dy = (y_max - y_min) / height; 
+    
+    #pragma omp parallel for
+        for(int i = 0; i < width; i++){
+            for(int j = 0; j < height; j++){
+
+            double x = x_min + i * dx;
+            double y = y_min + j * dy;
+
+            // Llamamos a la versión optimizada que recibe doubles directamente.
+            auto color = acotado_openmp(x, y);
+
+            pixel_buffer[j * width + i] = color;
+
+        }
+    }
+
+    
+}
+
+

@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.16)
 # Esto ayuda a organizar los archivos internos que genera Visual Studio Code.
 project(FractalJulia)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx2 -fopenmp") # Habilita el uso de instrucciones AVX2 para SIMD
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx2 -fopenmp") # Habilita el uso de instrucciones AVX2 para SIMD y OpenMP para paralelismo.
 
 # 3. Busca la librería 'fmt' en tu sistema (gestionada por vcpkg).
 # CONFIG: Indica que use el archivo de configuración oficial de la librería.

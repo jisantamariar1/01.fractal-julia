@@ -3,6 +3,9 @@
 #include <complex>            // Necesario para definir la constante 'c' del fractal.
 #include "fractal_serial.h"   // Nuestras funciones de cálculo de Julia.
 #include "fractal_simd.h"     // Nuestra función de cálculo de Julia optimizada con SIMD.
+#include "fractal_openmp.h"   // Nuestra función de cálculo de Julia optimizada con OpenMP.
+#include <omp.h>                   // Librería de OpenMP para paralelización.
+
 // Si estamos en Windows, incluimos su API para poder maximizar la ventana manualmente.
 #ifdef _WIN32
     #include <windows.h>
@@ -29,9 +32,17 @@ enum class runtime_type {
     SERIAL_1 = 0,
     SERIAL_2,
     SIMD,
+    OPENMP_REGIONES
 };
 
 int main() {
+    int thread_count;
+    #pragma omp parallel
+    {
+        #pragma omp master
+        thread_count = omp_get_num_threads();
+    }
+
     runtime_type r_type = runtime_type::SERIAL_1;
 
     // 1. ASIGNACIÓN DE MEMORIA (HEAP):
@@ -61,7 +72,7 @@ int main() {
     text.setPosition({10, 10}); 
     text.setStyle(sf::Text::Bold); 
 
-    std::string options = "Options: [1] Serial1 [2] Serial2 [3] SIMD | Up/Down: Change iterations";
+    std::string options = "Options: [1] Serial1 [2] Serial2 [3] SIMD [4] OPENMP REGIONES | Up/Down: Change iterations";
     sf::Text textOptions(font, options, 20);
     textOptions.setFillColor(sf::Color::White);
     textOptions.setStyle(sf::Text::Bold);
@@ -99,8 +110,13 @@ int main() {
                     case sf::Keyboard::Scan::Num3:
                         r_type = runtime_type::SIMD; // Cambiar a la implementación SIMD
                         break;
+                    case sf::Keyboard::Scan::Num4:
+                        r_type = runtime_type::OPENMP_REGIONES; // Cambiar a la implementación OpenMP
+                        break;
 
                 }
+
+                //std::memset(pixel_buffer, 0, WIDTH * HEIGHT * sizeof(uint32_t)); // Limpiar el buffer de píxeles para evitar residuos visuales al cambiar de modo.
             }
         }
         std::string mode ="";
@@ -120,6 +136,10 @@ int main() {
         } else if (r_type == runtime_type::SIMD) {
             julia_simd(x_min, y_min, x_max, y_max, WIDTH, HEIGHT, pixel_buffer);
             mode = "SIMD";
+        } else if (r_type == runtime_type::OPENMP_REGIONES) {
+            julia_openmp_regiones(x_min, y_min, x_max, y_max, WIDTH, HEIGHT, pixel_buffer);
+            mode = fmt::format("Julia OpenMP REGIONES (Threads: {})", thread_count);
+            //mode = "OPENMP";
         }
 
         // B. CÁLCULO DEL FRACTAL (Lógica pesada):

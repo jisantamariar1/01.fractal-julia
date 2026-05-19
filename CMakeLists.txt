@@ -13,6 +13,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx2 -fopenmp") # Habilita el uso de i
 # REQUIRED: Si no encuentra la librería, el proceso se detiene con un error.
 find_package(fmt CONFIG REQUIRED)
 
+
 # 4. Busca la librería SFML y los módulos específicos que necesitas.
 # System: Funciones base (tiempo, hilos).
 # Graphics: Para dibujar el fractal (texturas, sprites).

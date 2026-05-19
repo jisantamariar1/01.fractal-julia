@@ -33,7 +33,8 @@ enum class runtime_type {
     SERIAL_2,
     SIMD,
     OPENMP_REGIONES,
-    OPENMP_FOR
+    OPENMP_FOR,
+    OPENMP_FOR_SIMD
 };
 
 int main() {
@@ -117,6 +118,9 @@ int main() {
                     case sf::Keyboard::Scan::Num5:
                         r_type = runtime_type::OPENMP_FOR; // Cambiar a la implementación OpenMP con for
                         break;
+                    case sf::Keyboard::Scan::Num6:
+                        r_type = runtime_type::OPENMP_FOR_SIMD; // Cambiar a la implementación OpenMP con for y SIMD
+                        break;
                 }
 
                 //std::memset(pixel_buffer, 0, WIDTH * HEIGHT * sizeof(uint32_t)); // Limpiar el buffer de píxeles para evitar residuos visuales al cambiar de modo.
@@ -146,6 +150,9 @@ int main() {
         } else if (r_type == runtime_type::OPENMP_FOR) {
             julia_openmp_for(x_min, y_min, x_max, y_max, WIDTH, HEIGHT, pixel_buffer);
             mode = fmt::format("Julia OpenMP FOR (Threads: {})", thread_count);
+        } else if (r_type == runtime_type::OPENMP_FOR_SIMD) {
+            julia_openmp_for_simd(x_min, y_min, x_max, y_max, WIDTH, HEIGHT, pixel_buffer);
+            mode = fmt::format("Julia OpenMP FOR + SIMD (Threads: {})", thread_count);
         }
 
         // B. CÁLCULO DEL FRACTAL (Lógica pesada):
